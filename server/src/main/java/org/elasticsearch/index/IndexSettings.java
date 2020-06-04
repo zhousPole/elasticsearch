@@ -272,6 +272,13 @@ public final class IndexSettings {
                     Property.Dynamic,
                     Property.IndexScope);
 
+    public static final Setting<Boolean> INDEX_TRANSLOG_OPEN_SETTING =
+        Setting.boolSetting(
+            "index.translog.open",
+            true,
+            Property.Dynamic,
+            Property.IndexScope);
+
     /**
      * The maximum number of refresh listeners allows on this shard.
      */
@@ -349,6 +356,8 @@ public final class IndexSettings {
 
     private volatile long retentionLeaseMillis;
 
+    private volatile boolean translogOpen;
+
     /**
      * The maximum age of a retention lease before it is considered expired.
      *
@@ -360,6 +369,14 @@ public final class IndexSettings {
 
     private void setRetentionLeaseMillis(final TimeValue retentionLease) {
         this.retentionLeaseMillis = retentionLease.millis();
+    }
+
+    public boolean isTranslogOpen() {
+        return translogOpen;
+    }
+
+    public void setTranslogOpen(boolean translogOpen) {
+        this.translogOpen = translogOpen;
     }
 
     private volatile boolean warmerEnabled;
@@ -495,6 +512,7 @@ public final class IndexSettings {
         maxAnalyzedOffset = scopedSettings.get(MAX_ANALYZED_OFFSET_SETTING);
         maxTermsCount = scopedSettings.get(MAX_TERMS_COUNT_SETTING);
         maxRegexLength = scopedSettings.get(MAX_REGEX_LENGTH_SETTING);
+        translogOpen = scopedSettings.get(INDEX_TRANSLOG_OPEN_SETTING);
         this.mergePolicyConfig = new MergePolicyConfig(logger, this);
         this.indexSortConfig = new IndexSortConfig(this);
         singleType = INDEX_MAPPING_SINGLE_TYPE_SETTING.get(indexMetaData.getSettings()); // get this from metadata - it's not registered
@@ -551,6 +569,7 @@ public final class IndexSettings {
         scopedSettings.addSettingsUpdateConsumer(INDEX_SOFT_DELETES_RETENTION_OPERATIONS_SETTING, this::setSoftDeleteRetentionOperations);
         scopedSettings.addSettingsUpdateConsumer(INDEX_SEARCH_THROTTLED, this::setSearchThrottled);
         scopedSettings.addSettingsUpdateConsumer(INDEX_SOFT_DELETES_RETENTION_LEASE_PERIOD_SETTING, this::setRetentionLeaseMillis);
+        scopedSettings.addSettingsUpdateConsumer(INDEX_TRANSLOG_OPEN_SETTING, this::setTranslogOpen);
     }
 
     private void setTranslogFlushThresholdSize(ByteSizeValue byteSizeValue) {

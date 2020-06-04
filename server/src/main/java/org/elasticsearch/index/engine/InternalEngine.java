@@ -926,7 +926,8 @@ public class InternalEngine extends Engine {
                     indexResult = new IndexResult(
                             plan.versionForIndexing, getPrimaryTerm(), plan.seqNoForIndexing, plan.currentNotFoundOrDeleted);
                 }
-                if (index.origin().isFromTranslog() == false) {
+                boolean translogOpen = engineConfig.getIndexSettings().isTranslogOpen();
+                if (translogOpen && index.origin().isFromTranslog() == false) {
                     final Translog.Location location;
                     if (indexResult.getResultType() == Result.Type.SUCCESS) {
                         location = translog.add(new Translog.Index(index, indexResult));
